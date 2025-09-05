@@ -1,0 +1,35 @@
+:name: Cortex-R52 Memory Corruption Demo (No Files)
+:description: Runs Hello World, shows memory before/after corruption via logs
+
+using sysbus
+
+mach create "R52"
+machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
+
+# Load ELF
+macro reset """
+    sysbus LoadELF @C:/RENODE/MemInjection/hello.elf
+"""
+runMacro $reset
+
+# UART console
+showAnalyzer uart0
+
+# Start execution
+emulation RunFor "2s"
+
+# --- Before corruption ---
+log ">>> Reading memory at 0x2000 BEFORE corruption"
+sysbus.dram0 ReadDoubleWord 0x2000
+
+# --- Inject corruption ---
+sysbus.dram0 WriteDoubleWord 0x2000 0xDEADBEEF
+log ">>> Memory corruption injected at 0x2000 (0xDEADBEEF)"
+
+# --- After corruption ---
+log ">>> Reading memory at 0x2000 AFTER corruption"
+sysbus.dram0 ReadDoubleWord 0x2000
+
+
+
+

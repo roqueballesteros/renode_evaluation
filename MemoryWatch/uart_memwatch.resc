@@ -1,0 +1,30 @@
+:name: Cortex-R52 UART Memory Watch Demo
+:description: Runs uart_memwatch.elf and shows memory corruption via UART.
+
+using sysbus
+
+# Create a machine
+mach create "R52"
+machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
+
+# Load your ELF
+macro reset """
+    sysbus LoadELF @C:/RENODE/MemoryWatch/uart_memwatch.elf
+"""
+runMacro $reset
+
+# Attach UART analyzer
+showAnalyzer uart0
+
+# Start execution
+# emulation StartAll
+
+# Let it run for 2 seconds to show normal values
+emulation RunFor "1s"
+
+# Inject corruption at 0x2000
+sysbus.dram0 WriteDoubleWord 0x2000 0xDEADBEEF
+log ">>> Injected corruption at 0x2000 (0xDEADBEEF)"
+
+# Run again so you can see UART printing the corrupted value
+emulation RunFor "1s"

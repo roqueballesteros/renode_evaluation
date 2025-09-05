@@ -1,0 +1,35 @@
+:name: Cortex-R52 UART Hello World
+:description: Runs a Hello World demo binary on Cortex-R52 with UART output.
+
+using sysbus
+
+# Create machine
+mach create "R52"
+
+# Load platform description for Cortex-R52
+machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
+
+# Path to your ELF file
+$bin?=@C:/RENODE/HelloWorld/hello.elf
+
+# Open UART0 analyzer
+showAnalyzer uart0
+
+# Define a macro so you can reload and rerun easily
+macro reset """
+    sysbus LoadELF $bin
+    cpu Reset
+"""
+
+# Run the reset macro (load ELF and reset CPU)
+runMacro $reset
+
+# Start simulation
+start
+
+
+
+
+
+
+

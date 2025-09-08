@@ -1,0 +1,30 @@
+:name: RZ/T2M Memory Watch Demo
+:description: Runs memory watch program on RZ/T2M and injects corruption.
+
+using sysbus
+
+# Create machine and load platform description
+mach create "RZT2M"
+machine LoadPlatformDescription @platforms/cpus/renesas_rz_t2m.repl
+
+# Load ELF into memory
+macro reset """
+    sysbus LoadELF @C:/RENODE/RZT2M/rzt2m_memwatch.elf
+"""
+runMacro $reset
+
+# Show SCI0 UART console
+showAnalyzer sysbus.sci0
+
+# Start execution
+#emulation StartAll
+
+# Let program run for 5 seconds
+emulation RunFor "1s"
+
+# Inject corruption at watched address (0x2000)
+sysbus.sram0 WriteDoubleWord 0x2000 0xDEADBEEF
+log ">>> Memory corruption injected at 0x2000 (0xDEADBEEF)"
+
+# Run a bit more to see the effect
+emulation RunFor "1s"

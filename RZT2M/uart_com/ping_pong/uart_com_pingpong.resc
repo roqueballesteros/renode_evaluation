@@ -1,0 +1,31 @@
+:name: RZ/T2M UART Ping-Pong Demo
+:description: Two RZ/T2M machines running ping-pong UART communication.
+
+using sysbus
+
+$platform?=@platforms/cpus/renesas_rz_t2m.repl
+$cpu0_elf?=@c:/RENODE/RZT2M/uart_com/ping_pong/cpu0_ping.elf
+$cpu1_elf?=@c:/RENODE/RZT2M/uart_com/ping_pong/cpu1_pong.elf
+
+mach create "cpu0_machine"
+mach set "cpu0_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu0_elf
+
+mach create "cpu1_machine"
+mach set "cpu1_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu1_elf
+
+emulation CreateUARTHub "uartHub"
+
+mach set "cpu0_machine"
+connector Connect sysbus.sci0 "uartHub"
+showAnalyzer sysbus.sci0
+
+mach set "cpu1_machine"
+connector Connect sysbus.sci0 "uartHub"
+showAnalyzer sysbus.sci0
+
+emulation StartAll
+#emulation RunFor

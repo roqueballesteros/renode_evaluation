@@ -9,7 +9,7 @@ machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
 
 # Load your ELF
 macro reset """
-    sysbus LoadELF @C:/RENODE/MemoryWatch/uart_memwatch.elf
+    sysbus LoadELF @C:/RENODE/cortex_r-52/MemoryWatch/uart_memwatch.elf
 """
 runMacro $reset
 

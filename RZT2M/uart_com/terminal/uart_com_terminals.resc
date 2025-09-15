@@ -1,0 +1,77 @@
+:name: RZ/T2M - two machines UART link with debug terminals
+:description: Two RZ/T2M machines, each running its own ELF, connected via UARTHub. Added two virtual consoles for separate CPU debug output.
+
+using sysbus
+
+$platform?=@platforms/cpus/renesas_rz_t2m.repl
+$cpu0_elf?=@C:/RENODE/RZT2M/uart_com/terminal/cpu0t.elf
+$cpu1_elf?=@C:/RENODE/RZT2M/uart_com/terminal/cpu1t.elf
+
+# Create CPU0
+mach create "cpu0_machine"
+mach set "cpu0_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu0_elf
+
+# Create CPU1
+mach create "cpu1_machine"
+mach set "cpu1_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu1_elf
+
+# Shared UART link between CPUs
+emulation CreateUARTHub "uartHub0"
+emulation CreateUARTHub "uartHub1"
+emulation CreateUARTHub "uartHub2"
+
+
+mach set "cpu0_machine"
+connector Connect sysbus.sci0 "uartHub0"
+
+mach set "cpu1_machine"
+connector Connect sysbus.sci0 "uartHub0"
+
+# -------------------------------
+# Extra virtual consoles for separate debug
+# -------------------------------
+
+# Analyze the shared communication link (SCI0 on both CPUs)
+# Create a virtual console tapped into uartHub0 to see both directions
+mach set "cpu0_machine"
+machine CreateVirtualConsole "comm_monitor"
+connector Connect comm_monitor "uartHub0"
+showAnalyzer comm_monitor
+
+# Also show per-CPU SCI0 analyzers to see TX/RX at each UART instance
+mach set "cpu0_machine"
+showAnalyzer sysbus.sci0
+mach set "cpu1_machine"
+showAnalyzer sysbus.sci0
+
+# CPU0 debug terminal
+mach set "cpu0_machine"
+machine CreateVirtualConsole "cpu0_terminal"
+connector Connect sysbus.sci1 "uartHub1"
+connector Connect cpu0_terminal "uartHub1"
+
+showAnalyzer cpu0_terminal
+
+# CPU1 debug terminal
+mach set "cpu1_machine"
+machine CreateVirtualConsole "cpu1_terminal"
+connector Connect sysbus.sci1 "uartHub2"
+connector Connect cpu1_terminal "uartHub2"
+
+showAnalyzer cpu1_terminal
+
+# Optionally, also show the UART-side analyzers for the debug interfaces (SCI1)
+# This allows seeing both TX and RX around the debug UARTs themselves
+mach set "cpu0_machine"
+showAnalyzer sysbus.sci1
+mach set "cpu1_machine"
+showAnalyzer sysbus.sci1
+
+
+# Start the emulation
+mach set "cpu0_machine"
+emulation StartAll

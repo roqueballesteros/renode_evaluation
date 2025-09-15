@@ -8,7 +8,7 @@ machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
 
 # Load ELF
 macro reset """
-    sysbus LoadELF @C:/RENODE/MemInjection/hello.elf
+    sysbus LoadELF @C:/RENODE/cortex_r-52/MemInjection/hello_mem_injection.elf
 """
 runMacro $reset
 

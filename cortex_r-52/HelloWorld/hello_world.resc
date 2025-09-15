@@ -10,7 +10,7 @@ mach create "R52"
 machine LoadPlatformDescription @platforms/cpus/cortex-r52.repl
 
 # Path to your ELF file
-$bin?=@C:/RENODE/HelloWorld/hello.elf
+$bin?=@C:/RENODE/cortex_r-52/HelloWorld/hello.elf
 
 # Open UART0 analyzer
 showAnalyzer uart0

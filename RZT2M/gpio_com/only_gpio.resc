@@ -1,0 +1,59 @@
+:name: RZ/T2M - two machines GPIO-only link
+
+using sysbus
+
+$platform?=@platforms/cpus/renesas_rz_t2m.repl
+$cpu0_elf?=@C:/RENODE/RZT2M/gpio_com/cpu0_only_gpio.elf
+$cpu1_elf?=@C:/RENODE/RZT2M/gpio_com/cpu1_only_gpio.elf
+
+# Create CPU0
+mach create "cpu0_machine"
+mach set "cpu0_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu0_elf
+
+# Create CPU1
+mach create "cpu1_machine"
+mach set "cpu1_machine"
+machine LoadPlatformDescription $platform
+sysbus LoadELF $cpu1_elf
+
+# Create GPIO connectors for each direction
+emulation CreateGPIOConnector "gpio_C0_P00_to_C1_P01"
+emulation CreateGPIOConnector "gpio_C1_P00_to_C0_P01"
+
+# CPU0 P0.0 (source) -> CPU1 P0.1 (destination)
+mach set "cpu0_machine"
+connector Connect sysbus.gpio gpio_C0_P00_to_C1_P01
+gpio_C0_P00_to_C1_P01 SelectSourcePin sysbus.gpio 0
+
+mach set "cpu1_machine"
+connector Connect sysbus.gpio gpio_C0_P00_to_C1_P01
+gpio_C0_P00_to_C1_P01 SelectDestinationPin sysbus.gpio 1
+
+# CPU1 P0.0 (source) -> CPU0 P0.1 (destination)
+mach set "cpu1_machine"
+connector Connect sysbus.gpio gpio_C1_P00_to_C0_P01
+gpio_C1_P00_to_C0_P01 SelectSourcePin sysbus.gpio 0
+
+mach set "cpu0_machine"
+connector Connect sysbus.gpio gpio_C1_P00_to_C0_P01
+gpio_C1_P00_to_C0_P01 SelectDestinationPin sysbus.gpio 1
+
+# Shared UART link for debug output
+emulation CreateUARTHub "uartHub0"
+
+mach set "cpu0_machine"
+connector Connect sysbus.sci0 "uartHub0"
+
+mach set "cpu1_machine"
+connector Connect sysbus.sci0 "uartHub0"
+
+showAnalyzer sci0
+
+mach set 0
+showAnalyzer sci0
+
+# Start the emulation
+mach set "cpu0_machine"
+emulation StartAll
